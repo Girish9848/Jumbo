@@ -1,0 +1,175 @@
+##########Docker#########
+
+Installation:
+windows 10 --> docker.com-->get docker  Comunity Edition(CE)
+Mac and below windows 7/8--> docker.com/toolbox
+RHEL--> Enterprice Edition
+To install Docker EE, you need the 64-bit version of Red Hat Enterprise Linux 7 running on an x86 hardware platform, 
+
+Docker Competeters:
+1.kubernetes
+2.virtual box
+3.vm ware
+4.vagrent
+
+Docker:- is a container service used to develope the appications.
+   --> we can install this without any hypervisers like vm ware,virtual box...etc
+   --> no need of any dedicated os to docker containers, it consumes from our base os and install bin,lib files of your desired image.  
+   --> no need to dedicate any RAM,HDD,OS to containers because it uses our base thing...
+   @ BUILD-->SHIP-->RUN 
+
+images:- is collection of files and some metadata, it made of layers, each layer can add,change and remove files
+   --> image are readonly filesystem, we can't edit
+   --> If you want to edit then we need to run the image as a container 
+   --> portable image
+   @ docker pull centos
+   @ docker images
+   @ docker rmi devops centos ubuntu redhat
+   @ for one image we can have multiple containers
+           Note:- every time when we run a "docker run -it <image_name>" it creats a new container. 
+   @ docker rmi <image id>
+           Note:- 1.it will not remove when the container is running(forcely (-f) also not possible)
+           Note:- 2.it will not remove when container is stoped also,(must be forced) 
+
+container:- is a running instance of a OS image(base os)
+            (or) container is a copy of image
+   --> it consists of images and applications
+   --> we can move,shift,upload,download
+   @ docker run -it centos "/bin/bash"
+   @ docker run -itd centos --> running container in a DETACHED mode
+   @ docker attach <container id>
+   @ exit (or)  ctrl + d
+   @ ctrl + p + q --> without stoping container, we can see docker ps
+   @ docker ps
+   @ docker ps -a
+   @ docker stop ff8bdb8453f6 <container id>
+   @ docker start 950cd0c95708 <container id>
+   @ docker rm <container id>
+            Note:- we can forcely remove the running container
+   @ docker info
+   @ docker create
+   @ docker pull
+   @ docker push
+   @ docker inspect <container id>
+
+creating custom images:-
+------------------------
+creating custom images from running containers
+   @ docker commit <container id> vinodhk070/vinu:latest
+   @ docker commit <container id> vinu:latest
+   @ docker push vinodhk070/vinu:latest
+   @ docker push vinu:latest
+
+Docker-hub:- is a place where we can see all the uploaded images 
+   --> docker search <image_name>
+        eg: docker search hello-world --> to see all the images(particular) in docker hub
+            docker pull hello-world --> to download the image into your local machine
+     
+Links:-
+        docker run --name vinusql -e MYSQL_ROOT_PASSWORD=root123 -d mysql:latest
+        docker run --name vinuword --link vinusql:mysql -p 8080:80 -d wordpress
+        docker port <wordpress container id>
+
+logs:- docker logs <container id> 
+
+Compose:- is a tool used to run multiple container docker applications.
+         >> here we use compose files to configure our application services by using single command
+         >> docker compose commands helps us to start,stop,rebuild the services,view status and logs of running services 
+
+dockerfile:-
+FROM
+
+
+       --> docker run starts a container form an image
+
+
+* docker start <contai id> --> we can run already stoped containers also insted of 'run'
+
+#############PUSH IMAGE TO DOCKER HUB########
+--> docker tag <imagename> vinodhk070/<imgname>:[tag]
+--> docker push vinodhk070/<imgname>:[tag]
+
+##########Volumes##########
+Data volumes can be shared and reused among containers.
+Data volumes are designed to persist data, independent of the container’s lifecycle
+
+Add data volume
+docker run -d -P --name web -v /webapp training/webapp centos
+ 
+mounting host dir into data volume
+docker run -d -P --name web -v /src/webapp:/webapp training/webapp centos
+
+mounting host file into data volume
+docker run --rm -it -v ~/.bash_history:/root/.bash_history ubuntu /bin/bash
+--> docker run -it -v hostpath:containerpath centos bash
+	eg:- docker run -it -v $(pwd):/mnt centos bash
+
+Creating and mounting a data volume container
+    docker create -v /dbdata --name dbstore centos
+--> docker run -it -d --volumes-from data1 --name vinu centos bash
+    docker attach data1
+
+backup,restore, or migrate data volumes
+$ docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+ 	
+###############Docker-machine###########
+Docker Machine is a tool that lets you install Docker Engine on virtual hosts, and manage the hosts with docker-machine commands.
+You can use Machine to create Docker hosts on your local Mac or Windows box, on your company network, 
+in your data center, or on cloud providers like Azure, AWS, or Digital Ocean.
+
+docker-machine version
+docker-machine help
+--> to create docker machine we need to pass the driver and name of the docket-machine 
+	eg:- docker-machine create --driver virtualbox test
+	eg:- docker-machine create -d test
+
+to see the environment variable of docker-machine:
+--> docker-machine env <docker-machine_name>
+run this evaluation commend to configure your shell: 
+--> eval $(docker-machine env test) 
+
+docker-machine start/stop <machine_names>
+switching
+docker-machine env box
+& "C:\Program Files\Docker Toolbox\docker-machine.exe" env box | Invoke-Expression
+ 
+##############DOCKERFILE###########
+it is a text document contains commands a user could call commands to asseble an image.
+docker build images automatically by reading the instructions from a dockerfile.
+	docker build -f /path/to/a/dockerfile .
+	docker build -t vinodhk070/machiapp .
+	docker build -t vinodhk070/machiapp:0.12  vinodhk070/machiapp11:latest
+- .dockerignore file --> before the docker CLI sends the context to the docker daemon, it excludes files and dirs that match pattern.
+
+FROM --> FROM centos:12.0.4
+
+RUN -->  RUN cd /var/spool/ -->the run instruction execute any commands in a new layer on the top of current image, and independent to other RUN instruction.
+
+CMD --> There can only be one CMD instruction in a Dockerfile. If you list more than one CMD then only the last CMD will take effect.
+	CMD echo "This is a test." | wc -
+	CMD ["/usr/bin/wc","--help"]
+
+LABEL --> The LABEL instruction adds metadata to an image. 
+	LABEL "com.example.vendor"="ACME Incorporated"
+	LABEL com.example.label-with-value="foo"
+	LABEL version="1.0"
+
+EXPOSE --> The EXPOSE instruction informs Docker that the container listens on the specified network ports at runtime
+	EXPOSE <port> [<port>...]
+
+ENV --> The ENV instruction sets the environment variable <key> to the value <value>
+	ENV myName="John Doe" myDog=Rex\ The\ Dog \   myCat=fluffy
+
+	ENV myName John Doe
+	ENV myDog Rex The Dog
+	ENV myCat fluffy
+
+ADD --> The ADD instruction copies new files, directories or remote file URLs from <src> and adds them to the filesystem of the image at the path <dest>.
+	
+	ADD test relativeDir/          # adds "test" to `WORKDIR`/relativeDir/
+	ADD test /absoluteDir/         # adds "test" to /absoluteDir/
+
+COPY -->The COPY instruction copies new files or directories from <src> and adds them to the filesystem of the container at the path <dest>.
+	COPY test relativeDir/   # adds "test" to `WORKDIR`/relativeDir/
+	COPY test /absoluteDir/  # adds "test" to /absoluteDir/
+
